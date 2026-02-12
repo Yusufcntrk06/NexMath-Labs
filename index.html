@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Math Lab Pro | Ultimate</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
+    <style>
+        /* --- CSS TEMALARI VE DEĞİŞKENLER --- */
+        :root {
+            --bg: #020617; --accent: #0ea5e9; --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1); --text: #f8fafc; --error: #f43f5e;
+        }
+        body.theme-blue { --bg: #020617; --accent: #0ea5e9; --glass: rgba(255,255,255,0.03); }
+        body.theme-neon-red { --bg: #1a0505; --accent: #ff003c; --glass: rgba(255, 0, 60, 0.05); }
+        body.theme-deep-blue { --bg: #000814; --accent: #003566; --glass: rgba(255,255,255,0.02); }
+        body.theme-purple { --bg: #0f011a; --accent: #a855f7; --glass: rgba(168, 85, 247, 0.05); }
+        body.theme-dark { --bg: #000000; --accent: #ffffff; --glass: rgba(255,255,255,0.05); }
+        body.theme-light { --bg: #f8fafc; --accent: #0f172a; --glass: rgba(0,0,0,0.05); --text: #0f172a; }
+
+        /* --- GENEL TASARIM --- */
+        body {
+            background-color: var(--bg); color: var(--text); font-family: 'Inter', sans-serif;
+            display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0;
+            overflow: hidden; transition: 0.5s;
+        }
+        .container {
+            background: var(--glass); backdrop-filter: blur(30px); border: 1px solid var(--border);
+            padding: 2rem; border-radius: 2.5rem; width: 380px; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+        }
+        .shake { animation: shake 0.4s both; }
+
+        /* --- TEMA VE MOD SEÇİCİLER --- */
+        .theme-selector { display: flex; justify-content: center; gap: 8px; margin-bottom: 15px; }
+        .theme-dot { width: 15px; height: 15px; border-radius: 50%; cursor: pointer; border: 2px solid rgba(255,255,255,0.2); }
+        .mode-selector { display: flex; gap: 5px; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 12px; }
+        .btn-mode { flex: 1; border: none; background: transparent; color: #94a3b8; padding: 8px; cursor: pointer; border-radius: 8px; font-size: 0.8rem; transition: 0.3s; }
+        .btn-mode.active { background: var(--accent); color: white; }
+
+        /* --- EKRAN --- */
+        .display { text-align: right; margin-bottom: 20px; padding: 0 10px; }
+        #expression { color: #94a3b8; font-size: 1rem; min-height: 1.5rem; }
+        #result { color: var(--accent); font-size: 3rem; font-weight: 800; word-break: break-all; }
+
+        /* --- TUŞ TAKIMI --- */
+        .keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .btn {
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--text);
+            padding: 20px; border-radius: 18px; font-size: 1.2rem; cursor: pointer; transition: 0.2s;
+        }
+        .btn:hover { border-color: var(--accent); transform: translateY(-2px); }
+        .btn-op { color: var(--accent); }
+        .btn-eq { background: var(--accent); color: white; grid-column: span 2; }
+
+        /* ANIMASYONLAR */
+        @keyframes shake { 10%, 90% { transform: translateX(-1px); } 20%, 80% { transform: translateX(2px); } 40%, 60% { transform: translateX(4px); } }
+    </style>
+</head>
+<body class="theme-blue">
+
+    <div class="container">
+        <div class="theme-selector">
+            <div class="theme-dot" style="background:#0ea5e9" onclick="setTheme('blue')"></div>
+            <div class="theme-dot" style="background:#ff003c" onclick="setTheme('neon-red')"></div>
+            <div class="theme-dot" style="background:#003566" onclick="setTheme('deep-blue')"></div>
+            <div class="theme-dot" style="background:#a855f7" onclick="setTheme('purple')"></div>
+            <div class="theme-dot" style="background:#111" onclick="setTheme('dark')"></div>
+            <div class="theme-dot" style="background:#eee" onclick="setTheme('light')"></div>
+        </div>
+
+        <div class="mode-selector">
+            <button class="btn-mode active" onclick="setMode('calc', this)">Hesapla</button>
+            <button class="btn-mode" onclick="setMode('currency', this)">Döviz</button>
+            <button class="btn-mode" onclick="setMode('formula', this)">Formül</button>
+        </div>
+
+        <div class="display">
+            <div id="expression">0</div>
+            <div id="result">0</div>
+        </div>
+
+        <div class="keypad" id="keypad"></div>
+    </div>
+
+    <script>
+        let currentInput = "";
+        let currentMode = 'calc';
+        const expressionDiv = document.getElementById('expression');
+        const resultDiv = document.getElementById('result');
+        const keypad = document.getElementById('keypad');
+
+        // TEMA YÖNETİMİ
+        function setTheme(theme) {
+            document.body.className = 'theme-' + theme;
+            localStorage.setItem('userTheme', theme);
+        }
+
+        // MOD YÖNETİMİ
+        function setMode(mode, btn) {
+            currentMode = mode;
+            document.querySelectorAll('.btn-mode').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderKeypad();
+            clearDisplay();
+        }
+
+        function renderKeypad() {
+            keypad.innerHTML = "";
+            if (currentMode === 'calc') {
+                ['AC','DEL','(',')','7','8','9','/','4','5','6','*','1','2','3','-','0','.','=','+'].forEach(k => createBtn(k, handleCalc));
+            } else if (currentMode === 'currency') {
+                ['USD','EUR','GBP','BTC'].forEach(c => createBtn(c, fetchCurrency));
+            } else if (currentMode === 'formula') {
+                const fs = [{n:'Hipotenüs', v:'sqrt(a^2+b^2)'}, {n:'Alan', v:'pi*r^2'}, {n:'E=mc2', v:'m*c^2'}];
+                fs.forEach(f => createBtn(f.n, () => { currentInput = f.v; updateDisplay(); }));
+            }
+        }
+
+        function createBtn(txt, fn) {
+            const b = document.createElement('button');
+            b.innerText = txt; b.className = `btn ${isNaN(txt) && txt !== '.' ? 'btn-op' : ''} ${txt === '=' ? 'btn-eq' : ''}`;
+            b.onclick = () => fn(txt);
+            keypad.appendChild(b);
+        }
+
+        function handleCalc(k) {
+            if (k === 'AC') clearDisplay();
+            else if (k === 'DEL') { currentInput = currentInput.slice(0,-1); updateDisplay(); }
+            else if (k === '=') calculate();
+            else {
+                const last = currentInput.slice(-1);
+                if (['+','*','/','.'].includes(k) && (currentInput === "" || ['+','-','*','/','.'].includes(last))) return;
+                currentInput += k; updateDisplay();
+            }
+        }
+
+        function calculate() {
+            try {
+                const res = math.evaluate(currentInput);
+                resultDiv.innerText = Number.isInteger(res) ? res : res.toFixed(4);
+            } catch (e) {
+                resultDiv.innerText = "Hata!";
+                document.querySelector('.container').classList.add('shake');
+                setTimeout(() => document.querySelector('.container').classList.remove('shake'), 400);
+            }
+        }
+
+        async function fetchCurrency(base) {
+            resultDiv.innerText = "...";
+            try {
+                const r = await fetch(`https://api.exchangerate-api.com/v4/latest/${base}`);
+                const d = await r.json();
+                resultDiv.innerText = d.rates.TRY.toFixed(2) + " ₺";
+            } catch (e) { resultDiv.innerText = "İnternet Yok!"; }
+        }
+
+        function clearDisplay() { currentInput = ""; updateDisplay(); resultDiv.innerText = "0"; }
+        function updateDisplay() { expressionDiv.innerText = currentInput || "0"; }
+
+        // BAŞLAT
+        renderKeypad();
+        setTheme(localStorage.getItem('userTheme') || 'blue');
+
+        // KLAVYE DESTEĞİ
+        document.addEventListener('keydown', (e) => {
+            if (currentMode === 'calc') {
+                if (/[0-9]/.test(e.key) || ['+','-','*','/','.'].includes(e.key)) handleCalc(e.key);
+                if (e.key === 'Enter') calculate();
+                if (e.key === 'Backspace') handleCalc('DEL');
+            }
+        });
+    </script>
+</body>
+</html>

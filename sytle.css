@@ -1,0 +1,58 @@
+/* --- DEĞİŞKENLER VE TEMALAR --- */
+:root {
+    --bg: #020617; --accent: #0ea5e9; --glass: rgba(255, 255, 255, 0.05);
+    --border: rgba(255, 255, 255, 0.1); --text: #f8fafc; --error: #f43f5e;
+}
+
+body.theme-blue { --bg: #020617; --accent: #0ea5e9; }
+body.theme-neon-red { --bg: #1a0505; --accent: #ff003c; --glass: rgba(255, 0, 60, 0.05); }
+body.theme-deep-blue { --bg: #000814; --accent: #003566; }
+body.theme-purple { --bg: #0f011a; --accent: #a855f7; }
+body.theme-dark { --bg: #000000; --accent: #ffffff; --glass: rgba(255,255,255,0.08); }
+body.theme-light { --bg: #f1f5f9; --accent: #0f172a; --text: #0f172a; --glass: rgba(0,0,0,0.05); --border: rgba(0,0,0,0.1); }
+
+/* --- ANA TASARIM --- */
+body {
+    background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0;
+    transition: background 0.5s ease; overflow: hidden;
+}
+
+.container {
+    background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--border);
+    padding: 2rem; border-radius: 2.5rem; width: 380px; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+}
+
+/* Tema Dotları */
+.theme-selector { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+.theme-dot { width: 18px; height: 18px; border-radius: 50%; cursor: pointer; border: 2px solid rgba(255,255,255,0.2); }
+.theme-dot.blue { background: #0ea5e9; }
+.theme-dot.red { background: #ff003c; }
+.theme-dot.deep { background: #003566; }
+.theme-dot.purple { background: #a855f7; }
+.theme-dot.dark { background: #111; }
+.theme-dot.light { background: #eee; }
+
+/* Menü Butonları */
+.mode-selector { display: flex; gap: 5px; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 12px; }
+.btn-mode { flex: 1; border: none; background: transparent; color: #94a3b8; padding: 10px; cursor: pointer; border-radius: 8px; font-weight: 600; }
+.btn-mode.active { background: var(--accent); color: white; }
+
+/* Ekran Tasarımı */
+.display { text-align: right; margin-bottom: 25px; padding: 0 5px; }
+#expression { color: #94a3b8; font-size: 1.1rem; min-height: 1.5rem; overflow: hidden; }
+#result { color: var(--accent); font-size: 3rem; font-weight: 800; overflow: hidden; }
+
+/* Tuş Takımı */
+.keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.btn {
+    background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--text);
+    padding: 20px; border-radius: 18px; font-size: 1.2rem; cursor: pointer; transition: 0.2s;
+}
+.btn:hover { border-color: var(--accent); background: rgba(255,255,255,0.08); transform: translateY(-2px); }
+.btn-op { color: var(--accent); }
+.btn-eq { background: var(--accent); color: white; grid-column: span 2; font-weight: bold; }
+
+/* Hata Sallanması */
+.shake { animation: shake 0.4s both; }
+@keyframes shake { 10%, 90% { transform: translateX(-2px); } 20%, 80% { transform: translateX(3px); } 40%, 60% { transform: translateX(-5px); } }
